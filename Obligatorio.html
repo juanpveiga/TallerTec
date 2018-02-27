@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset='UTF-8'>
+		<title>ObligatorioTecnologia</title>
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+		<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+		<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+		<script type='text/javascript'>
+			
+			db = window.openDatabase('BDObli', '1.0','BDObligatorio',2*1024*1024);
+			
+			$(document).ready(function(){
+				inicioBd();
+			});
+			
+			function inicioBd(){
+			
+			            db.transaction(function(tx){
+					    tx.executeSql("CREATE TABLE IF NOT EXISTS favoritos(nombre,id_Usuario)");
+						 
+		
+			});
+			}
+			
+			function login(){
+			
+			    var user = $("#user").val();
+			    var password = $("#password").val();
+				var mensaje ;
+				$("#bienvenida").empty();
+				$.ajax({
+						url:'http://quierojugar.tribus.com.uy/login',
+						type:'GET',
+						dataType:'json',
+						data:{user:user,password:password},
+						success: function(response){
+						mensaje = "Bienvenido usuario " + response.id_usuario;
+						$("#bienvenida").html(mensaje);
+						getCanchas();
+						sessionStorage.removeItem('IdUsuario');
+						sessionStorage.setItem('IdUsuario', response.id_usuario);
+						},
+						error: function(err)
+						{
+							$("#bienvenida").html(err)
+						}
+					});
+			}
+			
+			function registro(){
+			
+				var user = $("#registroUser").val();
+			    var password = $("#registroPassword").val();
+				 var nombre = $("#registroNombre").val();
+				$("#mensajeRegistro").empty();
+				if(user != "" && password != "" && nombre !=""){
+					$.ajax({
+						url:'http://quierojugar.tribus.com.uy/registrar',
+						type:'POST',
+						dataType:'json',
+						data:{user:user,password:password,nombre:nombre},
+						success: function(response){
+							$("#registroMensaje").html(response.id_Usuario);
+							getCanchas();
+							sessionStorage.removeItem('IdUsuario');
+						    sessionStorage.setItem('IdUsuario', response.id_usuario);
+						},
+						error: function(err)
+						{
+							$("#registroMensaje").html(err)
+						}
+					});
+				}
+			}
+			
+			
+				function getCanchas(){
+			
+				
+			        $("#listCanchas").empty();
+					$.ajax({
+						url:'http://quierojugar.tribus.com.uy/getCanchas',
+						type:'GET',
+						dataType:'json',
+						success: function(response){
+						
+							for(var i = 0; i< response.canchas.length; i++)
+							{
+								$("#listCanchas").append("<li><img src='http://quierojugar.tribus.com.uy/canchas/"+response.canchas[i].foto_inicial+"'/> <a href='#detallesPage' onclick='cargarDetalle($(this).data(\"nombre\"))' data-nombre='"+response.canchas[i].nombre+"'><p> " +response.canchas[i].nombre+ "</p></a><input type='button' value='fav'  onclick='agregarFav($(this).data(\"nombre\"))' data-nombre='"+response.canchas[i].nombre +")'/></li>");
+								
+							}
+							$( "#listCanchas" ).listview( "refresh" );
+							
+						},
+						error: function(err)
+						{
+							console.log("error! -> " + err);
+						}
+						
+						
+						
+					});
+				
+			}
+			
+			function agregarFav(nombre){
+			
+				db.transaction(function(tx){
+					tx.executeSql("CREATE TABLE IF NOT EXISTS favoritos(nombre,id_Usuario);");
+						tx.executeSql("INSERT INTO favoritos (nombre,id_Usuario) values ('"+nombre+"',"+sessionStorage.getItem('IdUsuario')+");");
+						
+					});
+				
+			}
+			
+			
+			
+			
+			
+			
+				function cargarDetalle(nombre){
+			
+				
+			
+					$.ajax({
+						url:'http://quierojugar.tribus.com.uy/getCancha',
+						type:'GET',
+						dataType:'json',
+						data:{nombre:nombre},
+						success: function(response){
+						
+						$("#detallesPage .ui-content").html("<p> Nombre:" +response.cancha.nombre +"</p><p>  Direccion: " +response.cancha.direccion +"</p><p> Telefono:" +response.cancha.telefono +"</p><p>" +response.cancha.ubicacion +"</p>" );
+					    						
+						},
+						error: function(err)
+						{
+							console.log("error! -> " + err);
+						}
+						
+						
+						
+					});
+				
+			}
+			
+
+			
+		</script>
+		
+		
+	</head>
+	<body>
+		<div data-role="page" id="inicio">
+			<div data-role="header" data-position="fixed">
+				<h1>Administrador de Canchas</h1>
+			</div><!-- /header -->
+
+			<div role="main" class="ui-content"  >
+			
+			<div data-role="collapsible">
+			<legend> Login </legend>
+			    
+				<label> Usuario : </label>
+				<input id="user" type="text" placeholder="Ingrese usuario"/>
+				<label> Contraseña : </label>
+				<input id="password" type="password" placeholder="Ingrese Contreaseña"/>
+				
+				 <label id ="mensajeLogin" ></label>
+				<a onclick="login()" data-role="button" href="#canchas"> Enviar </a>
+				
+				</div><!-- /collapsibleLogin -->
+				
+				
+				
+			
+				<div data-role="collapsible">
+			<legend> Registro </legend>
+				
+				 <label> Usuario : </label>
+				<input id="registroUser" type="text" placeholder="Ingrese usuario"/>
+				<label> Contraseña : </label>
+				<input id="registroPassword" type="password" placeholder="Ingrese Contreaseña"/>
+				<label> Nombre : </label>
+				<input id="registroNombre" type="password" placeholder="Ingrese Nombre"/>
+				 <label id ="registroMensaje" type="text"></label>
+				<a onclick= "registro()" data-role="button"> Registrar </a>
+				</div><!-- /collapsibleRegistro -->
+				
+			</div><!-- /content -->
+
+			<div data-role="footer" data-position="fixed">
+				<h4>Copyright Fibonachi 2018</h4>
+			</div><!-- /footer -->
+		</div><!-- /page -->
+		<div data-role="page" id="canchas">
+			<div data-role="header" data-position="fixed">
+				<h1>Canchas</h1>
+				<p  id="bienvenida"></p>
+				
+   <a href="#popupMenu" data-rel="popup" data-transition="slideup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-gear ui-btn-icon-left ui-btn-a">MENU</a>
+<div  data-position="fixed" data-role="popup" id="popupMenu" data-theme="b">
+        <ul data-role="listview" data-inset="true" style="min-width:210px;">
+            <li data-role="list-divider">Menu</li>
+            <li><a href="#">Ver Favoritos</a></li>
+            <li><a href="#"> Creación de un partido </a></li>
+            <li><a href="#">Inscripción a un partido</a></li>
+            <li><a href="#">Búsqueda de partidos </a></li>
+        </ul>
+</div>
+				</div><!-- /header -->
+				
+				<div role="main" class="ui-content"  >
+				
+				<ul id="listCanchas" data-role="listview" data-inset="true">
+				
+				</ul>
+				
+			</div><!-- /content -->
+
+			
+
+			<div data-role="footer" data-position="fixed">
+				<h4>Copyright Fibonachi 2018</h4>
+			</div><!-- /footer -->
+		</div><!-- /page -->
+		
+		<div data-role="page" id="detallesPage">
+			<div data-role="header" data-position="fixed">
+				<h1>Datos</h1>
+				
+				</div><!-- /header -->
+				
+				<div role="main" class="ui-content"  >
+				
+				
+				
+			</div><!-- /content -->
+
+			
+
+			<div data-role="footer" data-position="fixed">
+				<h4>Copyright Fibonachi 2018</h4>
+			</div><!-- /footer -->
+		</div><!-- /page -->
+	</body>
+</html>
+				
