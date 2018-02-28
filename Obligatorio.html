@@ -12,6 +12,7 @@
 			
 			$(document).ready(function(){
 				inicioBd();
+				
 			});
 			
 			function inicioBd(){
@@ -144,6 +145,30 @@
 				
 			}
 			
+			function getFavoritos()
+			{
+			    <!-- $("#popFavoritos").popup( "open" ); -->
+				db.transaction(function(tx){
+					tx.executeSql("SELECT * FROM favoritos",[],function(tx,results){
+						
+						$("#listCanchas").empty();
+						for(var i = 0; i<results.rows.length; i++)
+						{
+							$("#listCanchas").append("<li> <a href='#detallesPage' onclick='cargarDetalle($(this).data(\"nombre\"))' data-nombre='"+results.rows.item(i).nombre+"'><p> " +results.rows.item(i).nombre+ "</p></a></li>");
+						}
+						$("#listCanchas").listview("refresh");
+						
+					});
+				});
+			}
+			
+			
+			
+			
+			
+			
+			
+			
 
 			
 		</script>
@@ -158,6 +183,22 @@
 
 			<div role="main" class="ui-content"  >
 			
+		<!-- 	<a href="#popupLogin" data-rel="popup" data-position-to="window" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-a" data-transition="pop">Sign in</a>
+<div   data-role="popup" id="popupLogin" data-theme="a" class="ui-corner-all">
+    <form name="LogForm">
+        <div style="padding:10px 20px;">
+            <h3>Please sign in</h3>
+            <label for="un" class="ui-hidden-accessible">Username:</label>
+            <input type="text" name="user" id="user" value="" placeholder="username" data-theme="a">
+            <label for="pw" class="ui-hidden-accessible">Password:</label>
+            <input type="password" name="pass" id="password" value="" placeholder="password" data-theme="a">
+            
+            <button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Sign in</button>
+        </div>
+    </form>
+</div> -->
+
+			
 			<div data-role="collapsible">
 			<legend> Login </legend>
 			    
@@ -169,10 +210,10 @@
 				 <label id ="mensajeLogin" ></label>
 				<a onclick="login()" data-role="button" href="#canchas"> Enviar </a>
 				
-				</div><!-- /collapsibleLogin -->
+				</div><!-- /collapsibleLogin-->
 				
 				
-				
+		
 			
 				<div data-role="collapsible">
 			<legend> Registro </legend>
@@ -198,11 +239,11 @@
 				<h1>Canchas</h1>
 				<p  id="bienvenida"></p>
 				
-   <a href="#popupMenu" data-rel="popup" data-transition="slideup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-gear ui-btn-icon-left ui-btn-a">MENU</a>
-<div  data-position="fixed" data-role="popup" id="popupMenu" data-theme="b">
+   <a data-position="fixed" href="#popupMenu" data-rel="popup" data-transition="slideup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-gear ui-btn-icon-left ui-btn-a">MENU</a>
+<div   data-role="popup" id="popupMenu" data-theme="b">
         <ul data-role="listview" data-inset="true" style="min-width:210px;">
             <li data-role="list-divider">Menu</li>
-            <li><a href="#">Ver Favoritos</a></li>
+            <li><a href="#popFavoritos" onclick="getFavoritos()">Ver Favoritos</a></li>
             <li><a href="#"> Creación de un partido </a></li>
             <li><a href="#">Inscripción a un partido</a></li>
             <li><a href="#">Búsqueda de partidos </a></li>
@@ -211,7 +252,11 @@
 				</div><!-- /header -->
 				
 				<div role="main" class="ui-content"  >
+				<div data-role="popup" id="popFavoritos">
+				<ul id="listFavoritos" data-role="listview" data-inset="true">
 				
+				</ul>
+				</div>
 				<ul id="listCanchas" data-role="listview" data-inset="true">
 				
 				</ul>
