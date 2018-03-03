@@ -1,205 +1,378 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset='UTF-8'>
-		<title>ObligatorioTecnologia</title>
-		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
-		<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
-		<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
-		<script type='text/javascript'>
-			
-			db = window.openDatabase('BDObli', '1.0','BDObligatorio',2*1024*1024);
-			
-			$(document).ready(function(){
-				inicioBd();
-				
-			});
-			
-			function inicioBd(){
-			
-			            db.transaction(function(tx){
-					    tx.executeSql("CREATE TABLE IF NOT EXISTS favoritos(nombre,id_Usuario)");
-						 
-		
-			});
+<head>
+<meta charset='UTF-8'>
+<title>ObligatorioTecnologia</title>
+<link rel="stylesheet"
+	href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script
+	src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+<script type='text/javascript'>
+	db = window.openDatabase('BDObli', '1.0', 'BDObligatorio', 2 * 1024 * 1024);
+
+	$(document).ready(function() {
+		inicioBd();
+
+	});
+
+	function inicioBd() {
+
+		db
+				.transaction(function(tx) {
+					tx
+							.executeSql("CREATE TABLE IF NOT EXISTS favoritos(nombre,id_Usuario)");
+
+				});
+	}
+
+	function login() {
+
+		var user = $("#user").val();
+		var password = $("#password").val();
+		var mensaje;
+		$("#bienvenida").empty();
+		$.ajax({
+			url : 'http://quierojugar.tribus.com.uy/login',
+			type : 'GET',
+			dataType : 'json',
+			data : {
+				user : user,
+				password : password
+			},
+			success : function(response) {
+				mensaje = "Bienvenido usuario " + response.id_usuario;
+				$("#bienvenida").html(mensaje);
+				if(response.resultado_login == true){
+				getCanchas();
+				sessionStorage.removeItem('IdUsuario');
+				sessionStorage.setItem('IdUsuario', response.id_usuario);
+				}
+				else{
+					$("#mensajeLogin").html("Debe ingresar datos validos");
+					$("#formSignIn")[0].reset();
+					$("#popupLogin").popup("close");			}
+			},
+			error : function(err) {
+				$("#bienvenida").html(err)
 			}
-			
-			function login(){
-			
-			    var user = $("#user").val();
-			    var password = $("#password").val();
-				var mensaje ;
-				$("#bienvenida").empty();
-				$.ajax({
-						url:'http://quierojugar.tribus.com.uy/login',
-						type:'GET',
-						dataType:'json',
-						data:{user:user,password:password},
-						success: function(response){
+		});
+	}
+	
+	function openSignIn()
+	{
+		$("#mensajeLogin").empty;
+	}
+	
+	
+	
+
+	function signUp() {
+
+		var user = $("#userSignUp").val();
+		var password = $("#passSignUp").val();
+		var nombre = $("#nameSignUp").val();
+		var mensaje;
+		$("#bienvenida").empty();
+		if (user != "" && password != "" && nombre != "") {
+			$.ajax({
+				url : 'http://quierojugar.tribus.com.uy/registrar',
+				type : 'POST',
+				dataType : 'json',
+				data : {
+					user : user,
+					password : password,
+					nombre : nombre
+				},
+				success : function(response) {
+					
+					if(response.retorno == "OK"){
 						mensaje = "Bienvenido usuario " + response.id_usuario;
 						$("#bienvenida").html(mensaje);
-						getCanchas();
-						sessionStorage.removeItem('IdUsuario');
-						sessionStorage.setItem('IdUsuario', response.id_usuario);
-						},
-						error: function(err)
-						{
-							$("#bienvenida").html(err)
-						}
-					});
-			}
-			
-			function registro(){
-			
-				var user = $("#registroUser").val();
-			    var password = $("#registroPassword").val();
-				 var nombre = $("#registroNombre").val();
-				$("#mensajeRegistro").empty();
-				if(user != "" && password != "" && nombre !=""){
-					$.ajax({
-						url:'http://quierojugar.tribus.com.uy/registrar',
-						type:'POST',
-						dataType:'json',
-						data:{user:user,password:password,nombre:nombre},
-						success: function(response){
-							$("#registroMensaje").html(response.id_Usuario);
-							getCanchas();
-							sessionStorage.removeItem('IdUsuario');
-						    sessionStorage.setItem('IdUsuario', response.id_usuario);
-						},
-						error: function(err)
-						{
-							$("#registroMensaje").html(err)
-						}
-					});
+					
+					getCanchas();
+					sessionStorage.removeItem('IdUsuario');
+					sessionStorage.setItem('IdUsuario', response.id_usuario);
+					}else{
+						$("#mensajeLogin").html("Debe ingresar datos validos");
+						$("#formSignUp")[0].reset();
+						$("#popupSignUp").popup("close");			}
+						
+					
+				},
+				error : function(err) {
+					$("#bienvenida").html(err)
 				}
-			}
-			
-			
-				function getCanchas(){
-			
-				
-			        $("#listCanchas").empty();
-					$.ajax({
-						url:'http://quierojugar.tribus.com.uy/getCanchas',
-						type:'GET',
-						dataType:'json',
-						success: function(response){
-						
-							for(var i = 0; i< response.canchas.length; i++)
-							{
-								$("#listCanchas").append("<li><img src='http://quierojugar.tribus.com.uy/canchas/"+response.canchas[i].foto_inicial+"'/> <a href='#detallesPage' onclick='cargarDetalle($(this).data(\"nombre\"))' data-nombre='"+response.canchas[i].nombre+"'><p> " +response.canchas[i].nombre+ "</p></a><input type='button' value='fav'  onclick='agregarFav($(this).data(\"nombre\"))' data-nombre='"+response.canchas[i].nombre +")'/></li>");
-								
-							}
-							$( "#listCanchas" ).listview( "refresh" );
-							
-						},
-						error: function(err)
-						{
-							console.log("error! -> " + err);
+			});
+		}
+	}
+
+	function getCanchas() {
+
+		$("#listCanchas").listview().empty();
+		$.ajax({
+					url : 'http://quierojugar.tribus.com.uy/getCanchas',
+					type : 'GET',
+					dataType : 'json',
+					success : function(response) {
+
+						for (var i = 0; i < response.canchas.length; i++) {
+							$("#listCanchas")
+									.append("<li><a href='#detallesPage' onclick='cargarDetalle($(this).data(\"nombre\"))' data-nombre="
+										+ response.canchas[i].nombre
+										+ "><img src='http://quierojugar.tribus.com.uy/canchas/"+response.canchas[i].foto_inicial+"' width='80px' height='80px'/><input type='button' value='fav'  onclick='agregarFav($(this).data(\"nombre\"))' data-nombre='"
+													+ response.canchas[i].nombre
+													+ ")'/> <h2> "
+													+ response.canchas[i].nombre
+													+ "</h2><p>"+response.canchas[i].direccion+"<p/></a></li>");
+
 						}
-						
-						
-						
-					});
-				
-			}
-			
-			function agregarFav(nombre){
-			
-				db.transaction(function(tx){
-					tx.executeSql("CREATE TABLE IF NOT EXISTS favoritos(nombre,id_Usuario);");
-						tx.executeSql("INSERT INTO favoritos (nombre,id_Usuario) values ('"+nombre+"',"+sessionStorage.getItem('IdUsuario')+");");
-						
-					});
-				
-			}
-			
-			
-			
-			
-			
-			
-				function cargarDetalle(nombre){
-			
-				
-			
-					$.ajax({
-						url:'http://quierojugar.tribus.com.uy/getCancha',
-						type:'GET',
-						dataType:'json',
-						data:{nombre:nombre},
-						success: function(response){
-						
-						$("#detallesPage .ui-content").html("<p> Nombre:" +response.cancha.nombre +"</p><p>  Direccion: " +response.cancha.direccion +"</p><p> Telefono:" +response.cancha.telefono +"</p><p>" +response.cancha.ubicacion +"</p>" );
-					    						
-						},
-						error: function(err)
-						{
-							console.log("error! -> " + err);
-						}
-						
-						
-						
-					});
-				
-			}
-			
-			function getFavoritos()
-			{
-			    <!-- $("#popFavoritos").popup( "open" ); -->
-				db.transaction(function(tx){
-					tx.executeSql("SELECT * FROM favoritos",[],function(tx,results){
-						
-						$("#listCanchas").empty();
-						for(var i = 0; i<results.rows.length; i++)
-						{
-							$("#listCanchas").append("<li> <a href='#detallesPage' onclick='cargarDetalle($(this).data(\"nombre\"))' data-nombre='"+results.rows.item(i).nombre+"'><p> " +results.rows.item(i).nombre+ "</p></a></li>");
-						}
-						$("#listCanchas").listview("refresh");
-						
-					});
+						$("#listCanchas").listview().listview("refresh");
+						window.location.href = "#canchas";
+
+					},
+					error : function(err) {
+						console.log("error! -> " + err);
+					}
+
 				});
+
+	}
+
+	function agregarFav(nombre) {
+
+		db
+				.transaction(function(tx) {
+					tx
+							.executeSql("CREATE TABLE IF NOT EXISTS favoritos(nombre,id_Usuario);");
+
+					tx
+							.executeSql("INSERT INTO favoritos (nombre,id_Usuario) values ('"
+									+ nombre
+									+ "',"
+									+ sessionStorage.getItem('IdUsuario')
+									+ ");");
+
+				});
+
+	}
+
+	function cargarDetalle(nombre) {
+
+		$.ajax({
+			url : 'http://quierojugar.tribus.com.uy/getCancha',
+			type : 'GET',
+			dataType : 'json',
+			data : {
+				nombre : nombre
+			},
+			success : function(response) {
+
+				$("#detallesPage .ui-content").html(
+						"<p> Nombre:" + response.cancha.nombre
+								+ "</p><p>  Direccion: "
+								+ response.cancha.direccion
+								+ "</p><p> Telefono:"
+								+ response.cancha.telefono + "</p><p>"
+								+ response.cancha.ubicacion + "</p>");
+
+			},
+			error : function(err) {
+				console.log("error! -> " + err);
 			}
-			
-			
-			
-			
-			
-			
-			
-			
 
-			
-		</script>
+		});
+
+	}
+	//$(":mobile-pagecontainer").on("pagecontainershow", function(event,ui){alert ("This page was hiden": + ui.prevpage);});
+	
+	function crearPartido(){
+		
+		var nomPartido = $("#nomPartido").val();
+		var nomCancha = $("#nomCancha").val();
+		var mensaje;
+		
+		$.ajax({
+			url : 'http://quierojugar.tribus.com.uy/crearPartido',
+			type : 'POST',
+			dataType : 'json',
+			data : {
+				nombreCancha : nomCancha,
+				nombrePartido : nomPartido,
+				idUsuario: sessionStorage.getItem('IdUsuario'),
+			},
+			success : function(response) {
+				mensaje = "Usted ah creado el partido " + response.id_usuario;
+				$("#bienvenida").html(mensaje);
+				if(response.resultado_login == true){
+				getCanchas();
+				sessionStorage.removeItem('IdUsuario');
+				sessionStorage.setItem('IdUsuario', response.id_usuario);
+				}
+				else{
+					$("#mensajeLogin").html("Debe ingresar datos validos");
+					$("#formSignIn")[0].reset();
+					$("#popupLogin").popup("close");			}
+			},
+			error : function(err) {
+				$("#bienvenida").html(err)
+			}
+		});
+	}
+		
+	
+
+	function getFavoritos() {
+
+		db
+				.transaction(function(tx) {
+					tx
+							.executeSql(
+									"SELECT * FROM favoritos where id_Usuario= "+sessionStorage.getItem('IdUsuario')+ ";",
+									[],
+									function(tx, results) {
+										$("#popFavoritos").popup("open");
+
+										$("#listFavoritos").empty();
+										for (var i = 0; i < results.rows.length; i++) {
+											$("#listFavoritos")
+													.append(
+															"<li> <a href='#detallesPage' onclick='cargarDetalle($(this).data(\"nombre\"))' data-nombre='"
+																	+ results.rows
+																			.item(i).nombre
+																	+ "'><p> "
+																	+ results.rows
+																			.item(i).nombre
+																	+ "</p></a></li>");
+										}
+
+										$("#listFavoritos").listview("refresh");
+
+									});
+				});
+	}
+	
+	
+	
+	function abrirCrearPartido()
+	{
+		
+		$("#popupNuevo").popup("open");
+		window.location.href = "#popupNuevo";
+	}
+	
+	function cargarCanchas()
+	{
+		$.ajax({
+			url : 'http://quierojugar.tribus.com.uy/getCanchas',
+			type : 'GET',
+			dataType : 'json',
+			success : function(response) {
+
+				for (var i = 0; i < response.canchas.length; i++) {
+					$("#canchaAutocomplete")
+							.append("<li><a href='#autocomplete-input' text="+ response.canchas[i].nombre+">"
+											+ response.canchas[i].nombre
+											+ "</a></li>");
+
+				}
+				$("#canchaAutocomplete").listview().listview("refresh");
+				
+
+			},
+			error : function(err) {
+				console.log("error! -> " + err);
+			}
+
+		});
+
+		
+	}
+	
+	
+	
+	function cerrarSession()
+	{
+		sessionStorage.removeItem('IdUsuario');
+		$("#listCanchas").empty();
+		$("#bienvenida").empty();
 		
 		
-	</head>
-	<body>
-		<div data-role="page" id="inicio">
-			<div data-role="header" data-position="fixed">
-				<h1>Administrador de Canchas</h1>
-			</div><!-- /header -->
+	}
+</script>
 
-			<div role="main" class="ui-content"  >
-			
-		<!-- 	<a href="#popupLogin" data-rel="popup" data-position-to="window" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-a" data-transition="pop">Sign in</a>
-<div   data-role="popup" id="popupLogin" data-theme="a" class="ui-corner-all">
-    <form name="LogForm">
-        <div style="padding:10px 20px;">
-            <h3>Please sign in</h3>
-            <label for="un" class="ui-hidden-accessible">Username:</label>
-            <input type="text" name="user" id="user" value="" placeholder="username" data-theme="a">
-            <label for="pw" class="ui-hidden-accessible">Password:</label>
-            <input type="password" name="pass" id="password" value="" placeholder="password" data-theme="a">
-            
-            <button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Sign in</button>
-        </div>
-    </form>
-</div> -->
 
+</head>
+<body>
+	<div data-role="page" id="inicio">
+		<div data-role="header" data-position="fixed">
+			<h1>Administrador de Canchas</h1>
+		</div>
+		<!-- /header -->
+
+		<div role="main" class="ui-content">
+
+			<a href="#popupLogin" data-rel="popup" data-position-to="origin"
+				class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-a"
+				data-transition="pop" onclick="openSignIn()">Sign in</a>
+			<div data-role="popup" id="popupLogin" data-theme="a"
+				class="ui-corner-all">
+				    
+				<form name="LogForm" id="formSignIn">
+					        
+					<div style="padding: 10px 20px;">
+						            
+						<h3>Please sign in</h3>
+						            <label for="un" class="ui-hidden-accessible">Username:</label>
+						            <input type="text" name="user" id="user" value=""
+							placeholder="username" data-theme="a">             <label
+							for="pw" class="ui-hidden-accessible">Password:</label>
+						            <input type="password" name="pass" id="password"
+							value="" placeholder="password" data-theme="a">
+
+						            
+						<button href="#canchas" type="button"
+							class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check"
+							onclick="login()">Sign in</button>
+						        
+					</div>
+					    
+				</form>
+			</div>
 			
-			<div data-role="collapsible">
+			<a href="#popupSignUp" data-rel="popup" data-position-to="origin"
+				class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-a"
+				data-transition="pop" onclick="openSignIn()">Sign Up</a>
+			<div data-role="popup" id="popupSignUp" data-theme="a"
+				class="ui-corner-all">
+				    
+				<form name="signUpForm" id="formSignUp">
+					        
+					<div style="padding: 10px 20px;">
+						            
+						<h3>Please sign up</h3>
+						            <label for="un" class="ui-hidden-accessible">Username:</label>
+						            <input type="text" name="user" id="userSignUp" value=""
+							placeholder="username" data-theme="a">             <label
+							for="pw" class="ui-hidden-accessible">Password:</label>
+						            <input type="password" name="pass" id="passSignUp"
+							value="" placeholder="password" data-theme="a">
+ <label
+							for="pw" class="ui-hidden-accessible">Name:</label>
+						            <input type="password" name="name" id="nameSignUp"
+							value="" placeholder="Name" data-theme="a">
+						            
+						<button href="#canchas" type="button"
+							class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check"
+							onclick="signUp()">Sign up</button>
+						        
+					</div>
+					    
+				</form>
+			</div>
+           <p id="mensajeLogin"></p>
+
+			<!-- <div data-role="collapsible">
 			<legend> Login </legend>
 			    
 				<label> Usuario : </label>
@@ -211,83 +384,140 @@
 				<a onclick="login()" data-role="button" href="#canchas"> Enviar </a>
 				
 				</div><!-- /collapsibleLogin-->
-				
-				
-		
-			
-				<div data-role="collapsible">
-			<legend> Registro </legend>
-				
-				 <label> Usuario : </label>
-				<input id="registroUser" type="text" placeholder="Ingrese usuario"/>
-				<label> Contraseña : </label>
-				<input id="registroPassword" type="password" placeholder="Ingrese Contreaseña"/>
-				<label> Nombre : </label>
-				<input id="registroNombre" type="password" placeholder="Ingrese Nombre"/>
-				 <label id ="registroMensaje" type="text"></label>
-				<a onclick= "registro()" data-role="button"> Registrar </a>
-				</div><!-- /collapsibleRegistro -->
-				
-			</div><!-- /content -->
 
-			<div data-role="footer" data-position="fixed">
-				<h4>Copyright Fibonachi 2018</h4>
-			</div><!-- /footer -->
-		</div><!-- /page -->
-		<div data-role="page" id="canchas">
-			<div data-role="header" data-position="fixed">
-				<h1>Canchas</h1>
-				<p  id="bienvenida"></p>
-				
-   <a data-position="fixed" href="#popupMenu" data-rel="popup" data-transition="slideup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-gear ui-btn-icon-left ui-btn-a">MENU</a>
-<div   data-role="popup" id="popupMenu" data-theme="b">
-        <ul data-role="listview" data-inset="true" style="min-width:210px;">
-            <li data-role="list-divider">Menu</li>
-            <li><a href="#popFavoritos" onclick="getFavoritos()">Ver Favoritos</a></li>
-            <li><a href="#"> Creación de un partido </a></li>
-            <li><a href="#">Inscripción a un partido</a></li>
-            <li><a href="#">Búsqueda de partidos </a></li>
-        </ul>
-</div>
-				</div><!-- /header -->
-				
-				<div role="main" class="ui-content"  >
-				<div data-role="popup" id="popFavoritos">
+
+
+<!-- 
+			<div data-role="collapsible">
+				<legend> Registro </legend>
+
+				<label> Usuario : </label> <input id="registroUser" type="text"
+					placeholder="Ingrese usuario" /> <label> Contraseña : </label> <input
+					id="registroPassword" type="password"
+					placeholder="Ingrese Contreaseña" /> <label> Nombre : </label> <input
+					id="registroNombre" type="password" placeholder="Ingrese Nombre" />
+				<label id="registroMensaje" type="text"></label> <a
+					onclick="registro()" data-role="button"> Registrar </a>
+			</div> -->
+			<!-- /collapsibleRegistro -->
+
+		</div>
+		<!-- /content -->
+
+		<div data-role="footer" data-position="fixed">
+			<h4>Copyright Fibonachi 2018</h4>
+		</div>
+		<!-- /footer -->
+	</div>
+	<!-- /page -->
+	<div data-role="page" id="canchas">
+		<div data-role="header" data-position="fixed">
+			<h1>Canchas</h1>
+			<p id="bienvenida"></p>
+
+			   <a data-position="fixed" href="#popupMenu" data-rel="popup"
+				data-transition="slideup"
+				class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-gear ui-btn-icon-left ui-btn-a">MENU</a>
+			<div data-role="popup" id="popupMenu" data-theme="b">
+				        
+				<ul data-role="listview" data-inset="true" style="min-width: 210px;">
+					            
+					<li data-role="list-divider">Menu</li>             
+					<li><a href="#popFavoritos" onclick="getFavoritos()">Ver
+							Favoritos</a></li>             
+					<li><a href="#formCrearPartido" onclick="abrirCrearPartido()"> feo </a></li>             
+					<li><a href="#crearPartido" >Crear Partido</a></li>             
+					<li><a href="#inicio" onclick="cerrarSession()">Cerrar Session </a></li>         
+				</ul>
+			</div>
+		</div>
+		<!-- /header -->
+
+		<div role="main" class="ui-content">
+		
+		
+			<div  data-theme="b" class=“ui-content” data-role="popup" id="popFavoritos" >
 				<ul id="listFavoritos" data-role="listview" data-inset="true">
-				
+
 				</ul>
-				</div>
-				<ul id="listCanchas" data-role="listview" data-inset="true">
-				
-				</ul>
-				
-			</div><!-- /content -->
-
+			</div><!-- /popupFavoritos -->
 			
+			<ul id="listCanchas" data-role="listview" data-inset="true">
 
-			<div data-role="footer" data-position="fixed">
-				<h4>Copyright Fibonachi 2018</h4>
-			</div><!-- /footer -->
-		</div><!-- /page -->
-		
-		<div data-role="page" id="detallesPage">
-			<div data-role="header" data-position="fixed">
-				<h1>Datos</h1>
-				
-				</div><!-- /header -->
-				
-				<div role="main" class="ui-content"  >
-				
-				
-				
-			</div><!-- /content -->
+			</ul>
 
-			
+		</div>
+		<!-- /content -->
 
-			<div data-role="footer" data-position="fixed">
-				<h4>Copyright Fibonachi 2018</h4>
-			</div><!-- /footer -->
-		</div><!-- /page -->
-	</body>
+
+
+		<div data-role="footer" data-position="fixed">
+			<h4>Copyright Fibonachi 2018</h4>
+		</div>
+		<!-- /footer -->
+	</div>
+	<!-- /page -->
+	
+	<div data-role="page" id="crearPartido">
+		<div data-role="header" data-position="fixed">
+			<h1>Crear Partido</h1>
+
+		</div>
+		<!-- /header -->
+
+		<div role="main" class="ui-content">
+		<form name="FormCrearPartido" id="formCrearPartido">
+					        
+					<div style="padding: 10px 20px;">
+						            
+						<h3>Crear Partido</h3>
+						            <label for="nombrePartido" class="ui-hidden-accessible">Nombre Partido:</label>
+						            <input type="text" name="nombre" id="nomPartido" value=""
+							placeholder="Nombre Partido" data-theme="a">            <form class="ui-filterable">
+    <input id="autocomplete-input" data-type="search" placeholder="Buscador de canchas ..." onclick="cargarCanchas()">
+</form>
+<ul data-role="listview" id="canchaAutocomplete" data-filter="true" data-filter-reveal="true" data-input="#autocomplete-input" data-inset="true">
+   
+</ul>
+						            
+						<button href="#canchas" type="button"
+							class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check"
+							onclick="crearPartido()">Crear</button>
+						        
+					</div>
+					    
+				</form>
+		</div>
+		<!-- /content -->
+
+
+
+		<div data-role="footer" data-position="fixed">
+			<h4>Copyright Fibonachi 2018</h4>
+		</div>
+		<!-- /footer -->
+	</div>
+	<!-- /page -->
+	
+	
+
+	<div data-role="page" id="detallesPage">
+		<div data-role="header" data-position="fixed">
+			<h1>Datos</h1>
+
+		</div>
+		<!-- /header -->
+
+		<div role="main" class="ui-content"></div>
+		<!-- /content -->
+
+
+
+		<div data-role="footer" data-position="fixed">
+			<h4>Copyright Fibonachi 2018</h4>
+		</div>
+		<!-- /footer -->
+	</div>
+	<!-- /page -->
+</body>
 </html>
-				
