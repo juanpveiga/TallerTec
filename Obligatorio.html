@@ -151,7 +151,7 @@
 									+ nombre
 									+ "',"
 									+ sessionStorage.getItem('IdUsuario')
-									+ ");");
+									+ ";");
 
 				});
 
@@ -164,7 +164,7 @@
 			type : 'GET',
 			dataType : 'json',
 			data : {
-				nombre : nombre
+				nombre: nombre
 			},
 			success : function(response) {
 
@@ -237,7 +237,7 @@
 										for (var i = 0; i < results.rows.length; i++) {
 											$("#listFavoritos")
 													.append(
-															"<li> <a href='#detallesPage' onclick='cargarDetalle($(this).data(\"nombre\"))' data-nombre='"
+															"<li> <a href='#detallesPage' onclick='cargarDetalle($(this).data(\"nombre\")' data-nombre='"
 																	+ results.rows
 																			.item(i).nombre
 																	+ "'><p> "
@@ -263,6 +263,7 @@
 	
 	function cargarCanchas()
 	{
+	$("#canchaCrearP").empty();
 		$.ajax({
 			url : 'http://quierojugar.tribus.com.uy/getCanchas',
 			type : 'GET',
@@ -270,17 +271,25 @@
 			success : function(response) {
 
 				for (var i = 0; i < response.canchas.length; i++) {
-					$("#canchaAutocomplete")
-							.append("<li><a href='#autocomplete-input' text="+ response.canchas[i].nombre+">"
-											+ response.canchas[i].nombre
-											+ "</a></li>");
-
-				}
-				$("#canchaAutocomplete").listview().listview("refresh");
+				if(response.canchas.length == 0 ){$("#mensajeCrearPartido").text("No hay canchas ingresadas al sistema");}else{
 				
+									
+													$("#canchaCrearP").append("<li><a function (onclick='cargarValor("+ response.canchas[i].nombre+"))' ><img src='http://quierojugar.tribus.com.uy/canchas/"+response.canchas[i].foto_inicial+"' width='80px' height='80px'/> <h2> "
+													+ response.canchas[i].nombre
+													+ "</h2><p>"+response.canchas[i].direccion+"<p/></a></li>");
+									} 
+									}
+									
+									 
+					
+													
 
-			},
-			error : function(err) {
+				
+				
+$("#canchaCrearP").listview().listview("refresh");				
+},
+
+error : function(err) {
 				console.log("error! -> " + err);
 			}
 
@@ -289,6 +298,14 @@
 		
 	}
 	
+	function cargarValor(nombre)
+	{
+	(document.FormCrearPartido.nomPartido.value = "'"+nombre+"'");
+	//$(#nomPartido).value("'"+nombre+"'");
+	}
+	
+
+			
 	
 	
 	function cerrarSession()
@@ -426,7 +443,7 @@
 					<li><a href="#popFavoritos" onclick="getFavoritos()">Ver
 							Favoritos</a></li>             
 					<li><a href="#formCrearPartido" onclick="abrirCrearPartido()"> feo </a></li>             
-					<li><a href="#crearPartido" >Crear Partido</a></li>             
+					<li><a href="#crearPartido" onclick="cargarCanchas()">Crear Partido</a></li>             
 					<li><a href="#inicio" onclick="cerrarSession()">Cerrar Session </a></li>         
 				</ul>
 			</div>
@@ -473,16 +490,18 @@
 						<h3>Crear Partido</h3>
 						            <label for="nombrePartido" class="ui-hidden-accessible">Nombre Partido:</label>
 						            <input type="text" name="nombre" id="nomPartido" value=""
-							placeholder="Nombre Partido" data-theme="a">            <form class="ui-filterable">
-    <input id="autocomplete-input" data-type="search" placeholder="Buscador de canchas ..." onclick="cargarCanchas()">
-</form>
-<ul data-role="listview" id="canchaAutocomplete" data-filter="true" data-filter-reveal="true" data-input="#autocomplete-input" data-inset="true">
+							placeholder="Nombre Partido" data-theme="a">   
+							<input type="text" name="nomPartido" id="nomPartido" value=""
+							 class="hidden">   
+							<button href="#canchas" type="button"
+							class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check"
+							onclick="crearPartido()">Crear</button>
+							         
+<ul data-role="listview" id="canchaCrearP"   data-inset="true">
    
 </ul>
 						            
-						<button href="#canchas" type="button"
-							class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check"
-							onclick="crearPartido()">Crear</button>
+						
 						        
 					</div>
 					    
